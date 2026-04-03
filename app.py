@@ -12,7 +12,21 @@ st.title("🚀 PragyanAI Placement Intelligence Engine")
 # -----------------------
 # LOAD DATA
 # -----------------------
-df = pd.read_csv("data/dataset.csv")
+# -----------------------
+# LOAD DATA (FIXED)
+# -----------------------
+@st.cache_data
+def load_data():
+    url = "https://raw.githubusercontent.com/pragyanaischool/VTU_Internship_DataSets/refs/heads/main/student_data_placement_interview_funnel_analysis_project_10.csv"
+    
+    try:
+        df = pd.read_csv(url)
+    except:
+        df = pd.read_csv(url, encoding='latin1', on_bad_lines='skip')
+    
+    return df
+
+df = load_data()
 
 # -----------------------
 # SIDEBAR FILTERS
