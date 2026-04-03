@@ -1,6 +1,6 @@
 def interview_success_rate(df):
-    interviews = df["Interview_Attended"].sum()
-    offers = df["Offer_Received"].sum()
+    interviews = df["Interview_Attended"].sum() if "Interview_Attended" in df.columns else 0
+    offers = df["Offer_Received"].sum() if "Offer_Received" in df.columns else 0
     return offers / interviews if interviews > 0 else 0
 
 
@@ -20,12 +20,3 @@ def round_efficiency(df):
         total = len(df) * len(existing_cols)
     
     return cleared / total if total > 0 else 0
-
-
-def placement_probability(row):
-    return (
-        row["CGPA"] +
-        row["Skill_Programs_Completed"] +
-        row["Projects_Count"] +
-        row["Internship_Count"]
-    )
