@@ -1,5 +1,4 @@
 import pandas as pd
-
 url = "https://raw.githubusercontent.com/pragyanaischool/VTU_Internship_DataSets/refs/heads/main/student_data_placement_interview_funnel_analysis_project_10.csv"
 df = pd.read_csv(url)
 
