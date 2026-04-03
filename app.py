@@ -3,15 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from utils.metrics import *
 
-# -----------------------
-# CONFIG
-# -----------------------
 st.set_page_config(layout="wide")
 st.title("🚀 PragyanAI Placement Intelligence Engine")
 
-# -----------------------
-# LOAD DATA
-# -----------------------
 # -----------------------
 # LOAD DATA (FIXED)
 # -----------------------
@@ -28,155 +22,117 @@ def load_data():
 
 df = load_data()
 
+# IMPORTANT FIX
+df.columns = df.columns.str.strip()
+
 # -----------------------
-# SIDEBAR FILTERS
+# SIDEBAR
 # -----------------------
 st.sidebar.header("🔍 Filters")
 
-domain = st.sidebar.multiselect("Domain", df["Domain"].unique(), default=df["Domain"].unique())
-company = st.sidebar.multiselect("Company Tier", df["Company_Tier"].unique(), default=df["Company_Tier"].unique())
+domain = st.sidebar.multiselect("Domain", df["Domain"].unique() if "Domain" in df.columns else [])
+company = st.sidebar.multiselect("Company_Tier", df["Company_Tier"].unique() if "Company_Tier" in df.columns else [])
 
-df = df[(df["Domain"].isin(domain)) & (df["Company_Tier"].isin(company))]
+if domain:
+    df = df[df["Domain"].isin(domain)]
+
+if company:
+    df = df[df["Company_Tier"].isin(company)]
 
 # -----------------------
-# KPI METRICS
+# KPI
 # -----------------------
-st.subheader("📊 Key Metrics")
+st.subheader("📊 Metrics")
 
 col1, col2, col3 = st.columns(3)
 
-col1.metric("Interview Success Rate", f"{interview_success_rate(df):.2%}")
-col2.metric("Round Efficiency", f"{round_efficiency(df):.2%}")
-col3.metric("Total Students", len(df))
+col1.metric("Success Rate", f"{interview_success_rate(df):.2%}")
+col2.metric("Efficiency", f"{round_efficiency(df):.2%}")
+col3.metric("Students", len(df))
 
 # -----------------------
 # FUNNEL
 # -----------------------
-st.subheader("📉 Placement Funnel")
+st.subheader("📉 Funnel")
 
-funnel = {
-    "Applied": df["Applied"].sum(),
-    "Shortlisted": df["Shortlisted"].sum(),
-    "Interview": df["Interview_Attended"].sum(),
-    "Offer": df["Offer_Received"].sum(),
-    "Joined": df["Joined"].sum()
-}
-
-st.bar_chart(funnel)
-
-# -----------------------
-# FAILURE ANALYSIS
-# -----------------------
-st.subheader("🔥 Round Failure Analysis")
-
-failure = df["Failed_Stage"].value_counts()
-st.bar_chart(failure)
+if "Applied" in df.columns:
+    funnel = {
+        "Applied": df["Applied"].sum(),
+        "Shortlisted": df["Shortlisted"].sum(),
+        "Interview": df["Interview_Attended"].sum(),
+        "Offer": df["Offer_Received"].sum(),
+        "Joined": df["Joined"].sum()
+    }
+    st.bar_chart(funnel)
 
 # -----------------------
-# ROLE ANALYSIS
+# FAILURE
 # -----------------------
-st.subheader("💼 Role Difficulty")
-
-role = df["Job_Role"].value_counts()
-st.bar_chart(role)
-
-# -----------------------
-# SALARY DISTRIBUTION
-# -----------------------
-st.subheader("💰 Salary Distribution")
-
-fig, ax = plt.subplots()
-ax.hist(df["Salary_LPA"], bins=30)
-st.pyplot(fig)
+if "Failed_Stage" in df.columns:
+    st.subheader("🔥 Failures")
+    st.bar_chart(df["Failed_Stage"].value_counts())
 
 # -----------------------
-# CGPA VS SUCCESS
+# ROLE
 # -----------------------
-st.subheader("🎓 CGPA vs Placement")
-
-cgpa = df.groupby("CGPA")["Joined"].mean()
-st.line_chart(cgpa)
-
-# -----------------------
-# SKILL IMPACT
-# -----------------------
-st.subheader("🧠 Skill Program Impact")
-
-skill = df.groupby("Skill_Programs_Completed")["Joined"].mean()
-st.bar_chart(skill)
+if "Job_Role" in df.columns:
+    st.subheader("💼 Roles")
+    st.bar_chart(df["Job_Role"].value_counts())
 
 # -----------------------
-# INTERNSHIP IMPACT
+# SALARY
 # -----------------------
-st.subheader("🏢 Internship Impact")
-
-intern = df.groupby("Internship_Count")["Joined"].mean()
-st.bar_chart(intern)
-
-# -----------------------
-# PROJECT IMPACT
-# -----------------------
-st.subheader("📁 Project Impact")
-
-proj = df.groupby("Projects_Count")["Joined"].mean()
-st.bar_chart(proj)
+if "Salary_LPA" in df.columns:
+    st.subheader("💰 Salary")
+    fig, ax = plt.subplots()
+    ax.hist(df["Salary_LPA"])
+    st.pyplot(fig)
 
 # -----------------------
-# DOMAIN GAP
+# SAFE GROUPBY FUNCTION
 # -----------------------
-st.subheader("⚠️ Domain Gap")
-
-domain_gap = df.groupby("Domain")["Joined"].mean()
-st.bar_chart(domain_gap)
+def safe_groupby(col):
+    if col in df.columns:
+        return df.groupby(col)["Joined"].mean()
+    return None
 
 # -----------------------
-# SEGMENTATION
+# SKILLS
 # -----------------------
-st.subheader("👥 Student Segmentation")
+skill = safe_groupby("Skill_Programs_Completed")
+if skill is not None:
+    st.subheader("🧠 Skills")
+    st.bar_chart(skill)
 
-placed = df[df["Joined"] == 1]
-failed = df[(df["Interview_Attended"] == 1) & (df["Offer_Received"] == 0)]
+# -----------------------
+# INTERNSHIP
+# -----------------------
+intern = safe_groupby("Internship_Count")
+if intern is not None:
+    st.subheader("🏢 Internship")
+    st.bar_chart(intern)
 
-col1, col2 = st.columns(2)
+# -----------------------
+# PROJECT
+# -----------------------
+proj = safe_groupby("Projects_Count")
+if proj is not None:
+    st.subheader("📁 Projects")
+    st.bar_chart(proj)
 
-col1.write("### ✅ Placed Students")
-col1.write(f"Count: {len(placed)}")
-
-col2.write("### ❌ Interview Failures")
-col2.write(f"Count: {len(failed)}")
+# -----------------------
+# DOMAIN
+# -----------------------
+domain_gap = safe_groupby("Domain")
+if domain_gap is not None:
+    st.subheader("⚠️ Domain Gap")
+    st.bar_chart(domain_gap)
 
 # -----------------------
 # INSIGHTS
 # -----------------------
-st.subheader("📌 Key Insights")
+st.subheader("📌 Insights")
 
-st.markdown("""
-- Interview stage is biggest bottleneck  
-- Coding + Tech rounds cause maximum failure  
-- Projects + Internships are strongest signals  
-- GenAI roles are hardest  
-- Success = Clearing interview rounds  
-""")
-
-# -----------------------
-# IMPROVEMENT ENGINE
-# -----------------------
-st.subheader("🚀 Improvement Strategy")
-
-st.markdown("""
-**1. Interview Prep Engine**
-- Coding practice
-- Mock interviews
-
-**2. Project-Based Learning**
-- Real-world projects
-
-**3. Role-Based Training**
-- DS vs AI vs GenAI
-
-**4. Weak Round Fix**
-- Aptitude → Practice tests
-- Coding → DSA
-- Tech → Mock interviews
-- HR → Communication
-""")
+st.write("Interview stage biggest bottleneck")
+st.write("Coding + Tech rounds cause failure")
+st.write("Projects + internships increase success")
