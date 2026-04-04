@@ -159,10 +159,10 @@ def safe_groupby(col):
 st.markdown("<div class='section'>", unsafe_allow_html=True)
 
 tab1, tab2, tab3, tab4 = st.tabs([
-    "📊 Placement Funnel",
-    "🚨 Failure Breakdown",
-    "💼 Role & Salary Analysis",
-    "🧠 Skill Intelligence"
+    "📊 Funnel",
+    "🔥 Failures",
+    "💼 Roles",
+    "🧠 Skills"
 ])
 
 with tab1:
