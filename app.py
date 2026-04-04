@@ -82,7 +82,7 @@ if apply_filter:
     if role:
         df = df[df["Job_Role"].isin(role)]
 
-# RESET FILTER
+# RESET
 if reset_filter:
     st.rerun()
 
@@ -213,7 +213,7 @@ if "Student_ID" in df.columns:
     if sid:
         result = df[df["Student_ID"].astype(str) == sid]
         if not result.empty:
-            st.dataframe(result)
+            st.dataframe(result, hide_index=True)
         else:
             st.warning("Not found")
 
@@ -226,14 +226,18 @@ csv = df.to_csv(index=False).encode('utf-8')
 st.download_button("Download CSV", csv, "data.csv", "text/csv")
 
 # -----------------------
-# TOP STUDENTS (FIXED)
+# TOP STUDENTS (FINAL CLEAN)
 # -----------------------
 st.markdown("## 🏆 Top Students")
 
 if "CGPA" in df.columns:
     top_students = df.sort_values(by="CGPA", ascending=False).head(10)
+
+    # Remove unwanted column
     top_students = top_students.drop(columns=["Failed_Stage"], errors="ignore")
-    st.dataframe(top_students.reset_index(drop=True))
+
+    # Hide index
+    st.dataframe(top_students, hide_index=True)
 
 # -----------------------
 # INSIGHTS
