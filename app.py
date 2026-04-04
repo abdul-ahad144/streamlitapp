@@ -29,7 +29,7 @@ st.markdown("""
 st.markdown("<h1 style='text-align: center;'>🚀 PragyanAI Placement Intelligence Engine</h1>", unsafe_allow_html=True)
 
 # -----------------------
-# LOAD DATA (SAFE)
+# LOAD DATA
 # -----------------------
 @st.cache_data
 def load_data():
@@ -43,8 +43,6 @@ def load_data():
     return df
 
 df = load_data()
-
-# CLEAN COLUMN NAMES
 df.columns = df.columns.str.strip()
 
 # -----------------------
@@ -62,21 +60,29 @@ company = st.sidebar.multiselect(
     df["Company_Tier"].unique() if "Company_Tier" in df.columns else []
 )
 
-# ✅ NEW: Job Role Filter
 role = st.sidebar.multiselect(
     "Job Role",
     df["Job_Role"].unique() if "Job_Role" in df.columns else []
 )
 
-# APPLY FILTERS
-if domain:
-    df = df[df["Domain"].isin(domain)]
+# ✅ BUTTONS
+apply_filter = st.sidebar.button("Apply Filters")
+reset_filter = st.sidebar.button("Reset Filters")
 
-if company:
-    df = df[df["Company_Tier"].isin(company)]
+# APPLY FILTER ONLY WHEN BUTTON CLICKED
+if apply_filter:
+    if domain:
+        df = df[df["Domain"].isin(domain)]
 
-if role:
-    df = df[df["Job_Role"].isin(role)]
+    if company:
+        df = df[df["Company_Tier"].isin(company)]
+
+    if role:
+        df = df[df["Job_Role"].isin(role)]
+
+# RESET
+if reset_filter:
+    st.experimental_rerun()
 
 # -----------------------
 # KPI CARDS
@@ -185,8 +191,6 @@ with tab4:
 # -----------------------
 # EXTRA COMPONENTS
 # -----------------------
-
-# 🎯 Placement Probability
 st.markdown("## 🎯 Placement Probability Calculator")
 
 cgpa = st.slider("CGPA", 0.0, 10.0, 7.0)
@@ -197,7 +201,9 @@ internships = st.slider("Internships", 0, 5, 1)
 prob = (cgpa + skills + projects + internships) / 25
 st.metric("Estimated Probability", f"{prob:.2%}")
 
-# 🔍 Student Search
+# -----------------------
+# STUDENT SEARCH
+# -----------------------
 st.markdown("## 🔍 Student Search")
 
 if "Student_ID" in df.columns:
@@ -209,13 +215,17 @@ if "Student_ID" in df.columns:
         else:
             st.warning("Not found")
 
-# 📥 Download
+# -----------------------
+# DOWNLOAD
+# -----------------------
 st.markdown("## 📥 Download Data")
 
 csv = df.to_csv(index=False).encode('utf-8')
 st.download_button("Download CSV", csv, "data.csv", "text/csv")
 
-# 🏆 Top Students
+# -----------------------
+# TOP STUDENTS
+# -----------------------
 st.markdown("## 🏆 Top Students")
 
 if "CGPA" in df.columns:
