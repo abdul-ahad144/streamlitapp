@@ -9,14 +9,14 @@ from utils.metrics import *
 st.set_page_config(page_title="PragyanAI Dashboard", layout="wide")
 
 # -----------------------
-# CUSTOM CSS (ULTRA UI)
+# CUSTOM CSS (LIGHT PREMIUM)
 # -----------------------
 st.markdown("""
 <style>
 
 /* BACKGROUND */
 body {
-    background-color: #0f1117;
+    background: #f6f8fb;
 }
 
 /* TITLE */
@@ -24,42 +24,57 @@ body {
     font-size: 42px;
     font-weight: 700;
     text-align: center;
-    background: linear-gradient(90deg, #4facfe, #00f2fe);
+    background: linear-gradient(90deg, #3a7bd5, #00d2ff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
+/* PREMIUM TAG */
+.premium-tag {
+    text-align: center;
+    font-size: 14px;
+    color: #fff;
+    background: linear-gradient(90deg, #ff7e5f, #feb47b);
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+}
+
 /* KPI CARD */
 .metric-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: white;
     padding: 20px;
     border-radius: 18px;
     text-align: center;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     transition: 0.3s;
 }
 
 .metric-card:hover {
-    transform: scale(1.05);
+    transform: translateY(-5px);
 }
 
 /* SECTION */
 .section {
-    background: rgba(255,255,255,0.04);
+    background: white;
     padding: 20px;
     border-radius: 15px;
     margin-bottom: 20px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
 }
 
 /* SIDEBAR */
 [data-testid="stSidebar"] {
-    background-color: #111;
+    background: linear-gradient(180deg, #ffffff, #f3f6fb);
+    border-right: 1px solid #eee;
 }
 
 /* BUTTON */
 button {
     border-radius: 10px !important;
+    background: linear-gradient(90deg, #3a7bd5, #00d2ff);
+    color: white !important;
 }
 
 /* TABLE */
@@ -71,8 +86,9 @@ button {
 """, unsafe_allow_html=True)
 
 # -----------------------
-# TITLE
+# PREMIUM TAG + TITLE
 # -----------------------
+st.markdown("<div style='text-align:center;'><span class='premium-tag'>💎 ULTRA PREMIUM DASHBOARD</span></div>", unsafe_allow_html=True)
 st.markdown("<div class='title'>🚀 PragyanAI Placement Intelligence Engine</div>", unsafe_allow_html=True)
 
 # -----------------------
