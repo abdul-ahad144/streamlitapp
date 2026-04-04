@@ -9,7 +9,7 @@ from utils.metrics import *
 st.set_page_config(page_title="PragyanAI Dashboard", layout="wide")
 
 # -----------------------
-# CUSTOM CSS (LIGHT PREMIUM)
+# CUSTOM CSS
 # -----------------------
 st.markdown("""
 <style>
@@ -154,15 +154,15 @@ def safe_groupby(col):
     return None
 
 # -----------------------
-# TABS
+# TABS (NAMED PREMIUM)
 # -----------------------
 st.markdown("<div class='section'>", unsafe_allow_html=True)
 
 tab1, tab2, tab3, tab4 = st.tabs([
-    "📉 Funnel",
-    "🔥 Failures",
-    "💼 Roles & Salary",
-    "🧠 Skills & Insights"
+    "📊 Placement Funnel",
+    "🚨 Failure Breakdown",
+    "💼 Role & Salary Analysis",
+    "🧠 Skill Intelligence"
 ])
 
 with tab1:
