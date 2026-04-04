@@ -65,11 +65,13 @@ role = st.sidebar.multiselect(
     df["Job_Role"].unique() if "Job_Role" in df.columns else []
 )
 
-# ✅ BUTTONS
+# -----------------------
+# BUTTONS
+# -----------------------
 apply_filter = st.sidebar.button("Apply Filters")
 reset_filter = st.sidebar.button("Reset Filters")
 
-# APPLY FILTER ONLY WHEN BUTTON CLICKED
+# APPLY FILTERS
 if apply_filter:
     if domain:
         df = df[df["Domain"].isin(domain)]
@@ -80,9 +82,9 @@ if apply_filter:
     if role:
         df = df[df["Job_Role"].isin(role)]
 
-# RESET
+# RESET FILTER
 if reset_filter:
-    st.experimental_rerun()
+    st.rerun()
 
 # -----------------------
 # KPI CARDS
