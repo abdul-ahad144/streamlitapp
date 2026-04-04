@@ -9,7 +9,7 @@ from utils.metrics import *
 st.set_page_config(page_title="PragyanAI Dashboard", layout="wide")
 
 # -----------------------
-# CUSTOM CSS
+# CUSTOM CSS (LIGHT PREMIUM)
 # -----------------------
 st.markdown("""
 <style>
@@ -77,11 +77,6 @@ button {
     color: white !important;
 }
 
-/* TABLE */
-[data-testid="stDataFrame"] {
-    border-radius: 12px;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -146,6 +141,17 @@ col4.markdown(f"<div class='metric-card'><h4>Placed</h4><h2>{df['Joined'].sum() 
 st.markdown("</div>", unsafe_allow_html=True)
 
 # -----------------------
+# NAVBAR (CUSTOM)
+# -----------------------
+st.markdown("<div class='section'>", unsafe_allow_html=True)
+
+nav = st.radio(
+    "",
+    ["📊 Placement Funnel", "🔥 Failure Insights", "💼 Roles & Salary", "🧠 Skill Intelligence"],
+    horizontal=True
+)
+
+# -----------------------
 # SAFE GROUPBY
 # -----------------------
 def safe_groupby(col):
@@ -154,18 +160,9 @@ def safe_groupby(col):
     return None
 
 # -----------------------
-# TABS (NAMED PREMIUM)
+# NAV CONTENT
 # -----------------------
-st.markdown("<div class='section'>", unsafe_allow_html=True)
-
-tab1, tab2, tab3, tab4 = st.tabs([
-    "📊 Funnel",
-    "🔥 Failures",
-    "💼 Roles",
-    "🧠 Skills"
-])
-
-with tab1:
+if nav == "📊 Placement Funnel":
     if "Applied" in df.columns:
         st.subheader("Placement Funnel")
         funnel = {
@@ -177,12 +174,12 @@ with tab1:
         }
         st.bar_chart(funnel)
 
-with tab2:
+elif nav == "🔥 Failure Insights":
     if "Failed_Stage" in df.columns:
         st.subheader("Failure Analysis")
         st.bar_chart(df["Failed_Stage"].value_counts())
 
-with tab3:
+elif nav == "💼 Roles & Salary":
     col1, col2 = st.columns(2)
 
     with col1:
@@ -197,7 +194,7 @@ with tab3:
             ax.hist(df["Salary_LPA"], bins=30)
             st.pyplot(fig)
 
-with tab4:
+elif nav == "🧠 Skill Intelligence":
     col1, col2 = st.columns(2)
 
     with col1:
