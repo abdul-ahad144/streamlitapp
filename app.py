@@ -6,13 +6,10 @@ from utils.metrics import *
 # -----------------------
 # PAGE CONFIG
 # -----------------------
-st.set_page_config(
-    page_title="PragyanAI Dashboard",
-    layout="wide",
-)
+st.set_page_config(page_title="PragyanAI Dashboard", layout="wide")
 
 # -----------------------
-# CUSTOM CSS (PRO UI)
+# CUSTOM CSS
 # -----------------------
 st.markdown("""
 <style>
@@ -32,7 +29,7 @@ st.markdown("""
 st.markdown("<h1 style='text-align: center;'>🚀 PragyanAI Placement Intelligence Engine</h1>", unsafe_allow_html=True)
 
 # -----------------------
-# LOAD DATA (FIXED ✅)
+# LOAD DATA (SAFE)
 # -----------------------
 @st.cache_data
 def load_data():
@@ -47,13 +44,13 @@ def load_data():
 
 df = load_data()
 
-# IMPORTANT FIX (hidden spaces remove)
+# CLEAN COLUMN NAMES
 df.columns = df.columns.str.strip()
 
 # -----------------------
-# SIDEBAR
+# SIDEBAR FILTERS
 # -----------------------
-st.sidebar.header("🔍 Smart Filters")
+st.sidebar.header("🔍 Filters")
 
 domain = st.sidebar.multiselect(
     "Domain",
@@ -80,23 +77,14 @@ col1, col2, col3, col4 = st.columns(4)
 
 col1.markdown(f"<div class='metric-card'><h3>Students</h3><h2>{len(df)}</h2></div>", unsafe_allow_html=True)
 
-col2.markdown(
-    f"<div class='metric-card'><h3>Success Rate</h3><h2>{interview_success_rate(df):.2%}</h2></div>",
-    unsafe_allow_html=True
-)
+col2.markdown(f"<div class='metric-card'><h3>Success Rate</h3><h2>{interview_success_rate(df):.2%}</h2></div>", unsafe_allow_html=True)
 
-col3.markdown(
-    f"<div class='metric-card'><h3>Efficiency</h3><h2>{round_efficiency(df):.2%}</h2></div>",
-    unsafe_allow_html=True
-)
+col3.markdown(f"<div class='metric-card'><h3>Efficiency</h3><h2>{round_efficiency(df):.2%}</h2></div>", unsafe_allow_html=True)
 
-col4.markdown(
-    f"<div class='metric-card'><h3>Placed</h3><h2>{df['Joined'].sum() if 'Joined' in df.columns else 0}</h2></div>",
-    unsafe_allow_html=True
-)
+col4.markdown(f"<div class='metric-card'><h3>Placed</h3><h2>{df['Joined'].sum() if 'Joined' in df.columns else 0}</h2></div>", unsafe_allow_html=True)
 
 # -----------------------
-# SAFE GROUPBY FUNCTION
+# SAFE GROUPBY
 # -----------------------
 def safe_groupby(col):
     if col in df.columns:
@@ -114,7 +102,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
 ])
 
 # -----------------------
-# TAB 1: FUNNEL
+# FUNNEL
 # -----------------------
 with tab1:
     st.subheader("Placement Funnel")
@@ -130,36 +118,34 @@ with tab1:
         st.bar_chart(funnel)
 
 # -----------------------
-# TAB 2: FAILURE
+# FAILURE
 # -----------------------
 with tab2:
-    st.subheader("Round Failure Analysis")
+    st.subheader("Failure Analysis")
 
     if "Failed_Stage" in df.columns:
-        failure = df["Failed_Stage"].value_counts()
-        st.bar_chart(failure)
+        st.bar_chart(df["Failed_Stage"].value_counts())
 
 # -----------------------
-# TAB 3: ROLE + SALARY
+# ROLE + SALARY
 # -----------------------
 with tab3:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("Role Distribution")
         if "Job_Role" in df.columns:
-            role = df["Job_Role"].value_counts()
-            st.bar_chart(role)
+            st.subheader("Role Distribution")
+            st.bar_chart(df["Job_Role"].value_counts())
 
     with col2:
-        st.subheader("Salary Distribution")
         if "Salary_LPA" in df.columns:
+            st.subheader("Salary Distribution")
             fig, ax = plt.subplots()
             ax.hist(df["Salary_LPA"], bins=30)
             st.pyplot(fig)
 
 # -----------------------
-# TAB 4: SKILLS + INSIGHTS
+# SKILLS
 # -----------------------
 with tab4:
     col1, col2 = st.columns(2)
@@ -187,17 +173,56 @@ with tab4:
             st.bar_chart(domain_gap)
 
 # -----------------------
+# EXTRA COMPONENTS
+# -----------------------
+
+# 🎯 Placement Probability
+st.markdown("## 🎯 Placement Probability Calculator")
+
+cgpa = st.slider("CGPA", 0.0, 10.0, 7.0)
+skills = st.slider("Skill Programs", 0, 5, 2)
+projects = st.slider("Projects", 0, 10, 3)
+internships = st.slider("Internships", 0, 5, 1)
+
+prob = (cgpa + skills + projects + internships) / 25
+st.metric("Estimated Probability", f"{prob:.2%}")
+
+# 🔍 Student Search
+st.markdown("## 🔍 Student Search")
+
+if "Student_ID" in df.columns:
+    sid = st.text_input("Enter Student ID")
+    if sid:
+        result = df[df["Student_ID"].astype(str) == sid]
+        if not result.empty:
+            st.dataframe(result)
+        else:
+            st.warning("Not found")
+
+# 📥 Download
+st.markdown("## 📥 Download Data")
+
+csv = df.to_csv(index=False).encode('utf-8')
+st.download_button("Download CSV", csv, "data.csv", "text/csv")
+
+# 🏆 Top Students
+st.markdown("## 🏆 Top Students")
+
+if "CGPA" in df.columns:
+    st.dataframe(df.sort_values(by="CGPA", ascending=False).head(10))
+
+# -----------------------
 # INSIGHTS
 # -----------------------
 st.markdown("## 📌 Key Insights")
 
-st.success("Interview stage is biggest bottleneck")
-st.warning("Coding + Tech rounds cause maximum failure")
-st.info("Projects + Internships boost success")
-st.error("GenAI roles are hardest")
+st.success("Interview stage biggest bottleneck")
+st.warning("Coding + Tech rounds cause failure")
+st.info("Projects + internships boost success")
+st.error("GenAI roles hardest")
 
 # -----------------------
 # FOOTER
 # -----------------------
 st.markdown("---")
-st.markdown("### 🚀 Built with Streamlit | PragyanAI Engine")
+st.markdown("🚀 Built with Streamlit | PragyanAI Engine")
