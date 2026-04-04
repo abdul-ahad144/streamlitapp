@@ -226,12 +226,14 @@ csv = df.to_csv(index=False).encode('utf-8')
 st.download_button("Download CSV", csv, "data.csv", "text/csv")
 
 # -----------------------
-# TOP STUDENTS
+# TOP STUDENTS (FIXED)
 # -----------------------
 st.markdown("## 🏆 Top Students")
 
 if "CGPA" in df.columns:
-    st.dataframe(df.sort_values(by="CGPA", ascending=False).head(10))
+    top_students = df.sort_values(by="CGPA", ascending=False).head(10)
+    top_students = top_students.drop(columns=["Failed_Stage"], errors="ignore")
+    st.dataframe(top_students.reset_index(drop=True))
 
 # -----------------------
 # INSIGHTS
