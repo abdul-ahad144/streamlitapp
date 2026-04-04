@@ -62,11 +62,21 @@ company = st.sidebar.multiselect(
     df["Company_Tier"].unique() if "Company_Tier" in df.columns else []
 )
 
+# ✅ NEW: Job Role Filter
+role = st.sidebar.multiselect(
+    "Job Role",
+    df["Job_Role"].unique() if "Job_Role" in df.columns else []
+)
+
+# APPLY FILTERS
 if domain:
     df = df[df["Domain"].isin(domain)]
 
 if company:
     df = df[df["Company_Tier"].isin(company)]
+
+if role:
+    df = df[df["Job_Role"].isin(role)]
 
 # -----------------------
 # KPI CARDS
