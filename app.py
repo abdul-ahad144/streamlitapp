@@ -9,12 +9,15 @@ from utils.metrics import *
 st.set_page_config(page_title="PragyanAI Dashboard", layout="wide")
 
 # -----------------------
-# CSS
+# CSS (UPDATED SIDEBAR)
 # -----------------------
 st.markdown("""
 <style>
+
+/* BACKGROUND */
 body { background: #f6f8fb; }
 
+/* TITLE */
 .title {
     font-size: 42px;
     font-weight: 700;
@@ -24,6 +27,7 @@ body { background: #f6f8fb; }
     -webkit-text-fill-color: transparent;
 }
 
+/* PREMIUM TAG */
 .premium-tag {
     text-align: center;
     font-size: 14px;
@@ -33,6 +37,16 @@ body { background: #f6f8fb; }
     border-radius: 20px;
 }
 
+/* KPI */
+.metric-card {
+    background: white;
+    padding: 20px;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+/* SECTION */
 .section {
     background: white;
     padding: 20px;
@@ -40,6 +54,27 @@ body { background: #f6f8fb; }
     margin-bottom: 20px;
     box-shadow: 0 5px 20px rgba(0,0,0,0.05);
 }
+
+/* 🔥 SIDEBAR PREMIUM BLUE GLASS */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #1e3c72, #2a5298);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-right: 1px solid rgba(255,255,255,0.2);
+}
+
+/* Sidebar text white */
+[data-testid="stSidebar"] * {
+    color: white !important;
+}
+
+/* Sidebar buttons */
+[data-testid="stSidebar"] button {
+    background: linear-gradient(90deg, #00c6ff, #0072ff);
+    border: none;
+    color: white !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -65,7 +100,7 @@ df = load_data()
 df.columns = df.columns.str.strip()
 
 # -----------------------
-# DOWNLOAD BUTTON
+# DOWNLOAD
 # -----------------------
 st.download_button(
     "⬇️ Download Dataset",
@@ -162,11 +197,6 @@ elif nav == "📈 Advanced":
     col1.metric("Placed", len(placed))
     col2.metric("Interview Failures", len(failed))
 
-    st.subheader("Insights")
-    st.write("Interview stage biggest bottleneck")
-    st.write("Coding + Tech failures high")
-    st.write("Projects + internships boost success")
-
 # -----------------------
 # TOP STUDENTS
 # -----------------------
@@ -174,6 +204,18 @@ st.subheader("🏆 Top Students")
 top_students = df.sort_values(by="CGPA", ascending=False).head(10)
 top_students = top_students.drop(columns=["Failed_Stage"], errors="ignore")
 st.dataframe(top_students, hide_index=True)
+
+# -----------------------
+# INSIGHTS (LAST)
+# -----------------------
+st.markdown("<div class='section'>", unsafe_allow_html=True)
+
+st.subheader("Insights")
+st.write("Interview stage biggest bottleneck")
+st.write("Coding + Tech failures high")
+st.write("Projects + internships boost success")
+
+st.markdown("</div>", unsafe_allow_html=True)
 
 # -----------------------
 # FOOTER
