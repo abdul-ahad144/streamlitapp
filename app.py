@@ -9,24 +9,71 @@ from utils.metrics import *
 st.set_page_config(page_title="PragyanAI Dashboard", layout="wide")
 
 # -----------------------
-# CUSTOM CSS
+# CUSTOM CSS (ULTRA UI)
 # -----------------------
 st.markdown("""
 <style>
-.metric-card {
-    background-color: #111;
-    padding: 15px;
-    border-radius: 12px;
-    text-align: center;
-    color: white;
+
+/* BACKGROUND */
+body {
+    background-color: #0f1117;
 }
+
+/* TITLE */
+.title {
+    font-size: 42px;
+    font-weight: 700;
+    text-align: center;
+    background: linear-gradient(90deg, #4facfe, #00f2fe);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* KPI CARD */
+.metric-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 18px;
+    text-align: center;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    transition: 0.3s;
+}
+
+.metric-card:hover {
+    transform: scale(1.05);
+}
+
+/* SECTION */
+.section {
+    background: rgba(255,255,255,0.04);
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+/* SIDEBAR */
+[data-testid="stSidebar"] {
+    background-color: #111;
+}
+
+/* BUTTON */
+button {
+    border-radius: 10px !important;
+}
+
+/* TABLE */
+[data-testid="stDataFrame"] {
+    border-radius: 12px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------
 # TITLE
 # -----------------------
-st.markdown("<h1 style='text-align: center;'>🚀 PragyanAI Placement Intelligence Engine</h1>", unsafe_allow_html=True)
+st.markdown("<div class='title'>🚀 PragyanAI Placement Intelligence Engine</div>", unsafe_allow_html=True)
 
 # -----------------------
 # LOAD DATA
@@ -50,56 +97,37 @@ df.columns = df.columns.str.strip()
 # -----------------------
 st.sidebar.header("🔍 Filters")
 
-domain = st.sidebar.multiselect(
-    "Domain",
-    df["Domain"].unique() if "Domain" in df.columns else []
-)
+domain = st.sidebar.multiselect("Domain", df["Domain"].unique() if "Domain" in df.columns else [])
+company = st.sidebar.multiselect("Company Tier", df["Company_Tier"].unique() if "Company_Tier" in df.columns else [])
+role = st.sidebar.multiselect("Job Role", df["Job_Role"].unique() if "Job_Role" in df.columns else [])
 
-company = st.sidebar.multiselect(
-    "Company Tier",
-    df["Company_Tier"].unique() if "Company_Tier" in df.columns else []
-)
-
-role = st.sidebar.multiselect(
-    "Job Role",
-    df["Job_Role"].unique() if "Job_Role" in df.columns else []
-)
-
-# -----------------------
-# BUTTONS
-# -----------------------
 apply_filter = st.sidebar.button("Apply Filters")
 reset_filter = st.sidebar.button("Reset Filters")
 
-# APPLY FILTERS
 if apply_filter:
     if domain:
         df = df[df["Domain"].isin(domain)]
-
     if company:
         df = df[df["Company_Tier"].isin(company)]
-
     if role:
         df = df[df["Job_Role"].isin(role)]
 
-# RESET
 if reset_filter:
     st.rerun()
 
 # -----------------------
 # KPI CARDS
 # -----------------------
-st.markdown("## 📊 Overview")
+st.markdown("<div class='section'>", unsafe_allow_html=True)
 
 col1, col2, col3, col4 = st.columns(4)
 
-col1.markdown(f"<div class='metric-card'><h3>Students</h3><h2>{len(df)}</h2></div>", unsafe_allow_html=True)
+col1.markdown(f"<div class='metric-card'><h4>Students</h4><h2>{len(df)}</h2></div>", unsafe_allow_html=True)
+col2.markdown(f"<div class='metric-card'><h4>Success Rate</h4><h2>{interview_success_rate(df):.2%}</h2></div>", unsafe_allow_html=True)
+col3.markdown(f"<div class='metric-card'><h4>Efficiency</h4><h2>{round_efficiency(df):.2%}</h2></div>", unsafe_allow_html=True)
+col4.markdown(f"<div class='metric-card'><h4>Placed</h4><h2>{df['Joined'].sum() if 'Joined' in df.columns else 0}</h2></div>", unsafe_allow_html=True)
 
-col2.markdown(f"<div class='metric-card'><h3>Success Rate</h3><h2>{interview_success_rate(df):.2%}</h2></div>", unsafe_allow_html=True)
-
-col3.markdown(f"<div class='metric-card'><h3>Efficiency</h3><h2>{round_efficiency(df):.2%}</h2></div>", unsafe_allow_html=True)
-
-col4.markdown(f"<div class='metric-card'><h3>Placed</h3><h2>{df['Joined'].sum() if 'Joined' in df.columns else 0}</h2></div>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
 # -----------------------
 # SAFE GROUPBY
@@ -112,6 +140,8 @@ def safe_groupby(col):
 # -----------------------
 # TABS
 # -----------------------
+st.markdown("<div class='section'>", unsafe_allow_html=True)
+
 tab1, tab2, tab3, tab4 = st.tabs([
     "📉 Funnel",
     "🔥 Failures",
@@ -119,13 +149,9 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "🧠 Skills & Insights"
 ])
 
-# -----------------------
-# FUNNEL
-# -----------------------
 with tab1:
-    st.subheader("Placement Funnel")
-
     if "Applied" in df.columns:
+        st.subheader("Placement Funnel")
         funnel = {
             "Applied": df["Applied"].sum(),
             "Shortlisted": df["Shortlisted"].sum(),
@@ -135,18 +161,11 @@ with tab1:
         }
         st.bar_chart(funnel)
 
-# -----------------------
-# FAILURE
-# -----------------------
 with tab2:
-    st.subheader("Failure Analysis")
-
     if "Failed_Stage" in df.columns:
+        st.subheader("Failure Analysis")
         st.bar_chart(df["Failed_Stage"].value_counts())
 
-# -----------------------
-# ROLE + SALARY
-# -----------------------
 with tab3:
     col1, col2 = st.columns(2)
 
@@ -162,9 +181,6 @@ with tab3:
             ax.hist(df["Salary_LPA"], bins=30)
             st.pyplot(fig)
 
-# -----------------------
-# SKILLS
-# -----------------------
 with tab4:
     col1, col2 = st.columns(2)
 
@@ -190,64 +206,21 @@ with tab4:
             st.subheader("Domain Gap")
             st.bar_chart(domain_gap)
 
-# -----------------------
-# EXTRA COMPONENTS
-# -----------------------
-st.markdown("## 🎯 Placement Probability Calculator")
-
-cgpa = st.slider("CGPA", 0.0, 10.0, 7.0)
-skills = st.slider("Skill Programs", 0, 5, 2)
-projects = st.slider("Projects", 0, 10, 3)
-internships = st.slider("Internships", 0, 5, 1)
-
-prob = (cgpa + skills + projects + internships) / 25
-st.metric("Estimated Probability", f"{prob:.2%}")
+st.markdown("</div>", unsafe_allow_html=True)
 
 # -----------------------
-# STUDENT SEARCH
+# TOP STUDENTS
 # -----------------------
-st.markdown("## 🔍 Student Search")
+st.markdown("<div class='section'>", unsafe_allow_html=True)
 
-if "Student_ID" in df.columns:
-    sid = st.text_input("Enter Student ID")
-    if sid:
-        result = df[df["Student_ID"].astype(str) == sid]
-        if not result.empty:
-            st.dataframe(result, hide_index=True)
-        else:
-            st.warning("Not found")
-
-# -----------------------
-# DOWNLOAD
-# -----------------------
-st.markdown("## 📥 Download Data")
-
-csv = df.to_csv(index=False).encode('utf-8')
-st.download_button("Download CSV", csv, "data.csv", "text/csv")
-
-# -----------------------
-# TOP STUDENTS (FINAL CLEAN)
-# -----------------------
-st.markdown("## 🏆 Top Students")
+st.markdown("### 🏆 Top Students")
 
 if "CGPA" in df.columns:
     top_students = df.sort_values(by="CGPA", ascending=False).head(10)
-
-    # Remove unwanted column
     top_students = top_students.drop(columns=["Failed_Stage"], errors="ignore")
-
-    # Hide index
     st.dataframe(top_students, hide_index=True)
 
-# -----------------------
-# INSIGHTS
-# -----------------------
-st.markdown("## 📌 Key Insights")
-
-st.success("Interview stage biggest bottleneck")
-st.warning("Coding + Tech rounds cause failure")
-st.info("Projects + internships boost success")
-st.error("GenAI roles hardest")
+st.markdown("</div>", unsafe_allow_html=True)
 
 # -----------------------
 # FOOTER
