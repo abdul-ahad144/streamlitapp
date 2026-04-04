@@ -9,7 +9,7 @@ from utils.metrics import *
 st.set_page_config(page_title="PragyanAI Dashboard", layout="wide")
 
 # -----------------------
-# CSS (LIGHT PREMIUM)
+# CSS
 # -----------------------
 st.markdown("""
 <style>
@@ -33,30 +33,12 @@ body { background: #f6f8fb; }
     border-radius: 20px;
 }
 
-.metric-card {
-    background: white;
-    padding: 20px;
-    border-radius: 18px;
-    text-align: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-}
-
 .section {
     background: white;
     padding: 20px;
     border-radius: 15px;
     margin-bottom: 20px;
     box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-}
-
-[data-testid="stSidebar"] {
-    background: #ffffff;
-}
-
-button {
-    border-radius: 10px !important;
-    background: linear-gradient(90deg, #3a7bd5, #00d2ff);
-    color: white !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -83,6 +65,16 @@ df = load_data()
 df.columns = df.columns.str.strip()
 
 # -----------------------
+# DOWNLOAD BUTTON
+# -----------------------
+st.download_button(
+    "⬇️ Download Dataset",
+    data=df.to_csv(index=False),
+    file_name="placement_data.csv",
+    mime="text/csv"
+)
+
+# -----------------------
 # FILTERS
 # -----------------------
 st.sidebar.header("🔍 Filters")
@@ -105,24 +97,16 @@ if st.sidebar.button("Reset Filters"):
 # -----------------------
 # KPI
 # -----------------------
-st.markdown("<div class='section'>", unsafe_allow_html=True)
-
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Students", len(df))
 c2.metric("Success Rate", f"{interview_success_rate(df):.2%}")
 c3.metric("Efficiency", f"{round_efficiency(df):.2%}")
 c4.metric("Placed", df["Joined"].sum())
 
-st.markdown("</div>", unsafe_allow_html=True)
-
 # -----------------------
 # NAVBAR
 # -----------------------
-nav = st.radio(
-    "",
-    ["📊 Funnel", "🔥 Failures", "💼 Roles", "🧠 Skills", "📈 Advanced"],
-    horizontal=True
-)
+nav = st.radio("", ["📊 Funnel", "🔥 Failures", "💼 Roles", "🧠 Skills", "📈 Advanced"], horizontal=True)
 
 # -----------------------
 # FUNNEL
@@ -148,7 +132,6 @@ elif nav == "🔥 Failures":
 # -----------------------
 elif nav == "💼 Roles":
     st.bar_chart(df["Job_Role"].value_counts())
-
     fig, ax = plt.subplots()
     ax.hist(df["Salary_LPA"], bins=30)
     st.pyplot(fig)
@@ -163,7 +146,7 @@ elif nav == "🧠 Skills":
     st.bar_chart(df.groupby("Domain")["Joined"].mean())
 
 # -----------------------
-# ADVANCED ANALYSIS
+# ADVANCED
 # -----------------------
 elif nav == "📈 Advanced":
 
@@ -179,30 +162,21 @@ elif nav == "📈 Advanced":
     col1.metric("Placed", len(placed))
     col2.metric("Interview Failures", len(failed))
 
-    st.subheader("Key Insights")
-    st.success("Interview stage is biggest bottleneck")
-    st.warning("Coding + Tech rounds cause maximum failure")
-    st.info("Projects + internships boost success")
-    st.error("GenAI roles are hardest")
-
-    st.subheader("Improvement Strategy")
-    st.write("Coding practice, mock interviews, real-world projects")
+    st.subheader("Insights")
+    st.write("Interview stage biggest bottleneck")
+    st.write("Coding + Tech failures high")
+    st.write("Projects + internships boost success")
 
 # -----------------------
 # TOP STUDENTS
 # -----------------------
-st.markdown("<div class='section'>", unsafe_allow_html=True)
-
 st.subheader("🏆 Top Students")
-
 top_students = df.sort_values(by="CGPA", ascending=False).head(10)
 top_students = top_students.drop(columns=["Failed_Stage"], errors="ignore")
 st.dataframe(top_students, hide_index=True)
-
-st.markdown("</div>", unsafe_allow_html=True)
 
 # -----------------------
 # FOOTER
 # -----------------------
 st.markdown("---")
-st.markdown("🚀 Built with Streamlit | PragyanAI Engine")
+st.markdown("🚀 Built with Streamlit")
