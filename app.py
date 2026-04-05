@@ -33,21 +33,58 @@ df.columns = df.columns.str.strip()
 # -----------------------
 st.sidebar.header("🔍 Filters")
 
+# session state for reset
+if "domain" not in st.session_state:
+    st.session_state.domain = []
+if "company" not in st.session_state:
+    st.session_state.company = []
+if "role" not in st.session_state:
+    st.session_state.role = []
+
 domain = st.sidebar.multiselect(
     "Domain",
-    df["Domain"].unique() if "Domain" in df.columns else []
+    df["Domain"].unique() if "Domain" in df.columns else [],
+    default=st.session_state.domain
 )
 
 company = st.sidebar.multiselect(
     "Company Tier",
-    df["Company_Tier"].unique() if "Company_Tier" in df.columns else []
+    df["Company_Tier"].unique() if "Company_Tier" in df.columns else [],
+    default=st.session_state.company
 )
 
-if domain:
-    df = df[df["Domain"].isin(domain)]
+role = st.sidebar.multiselect(
+    "Job Role",
+    df["Job_Role"].unique() if "Job_Role" in df.columns else [],
+    default=st.session_state.role
+)
 
-if company:
-    df = df[df["Company_Tier"].isin(company)]
+# Buttons
+apply = st.sidebar.button("Apply Filters")
+reset = st.sidebar.button("Reset Filters")
+
+# Apply logic
+if apply:
+    st.session_state.domain = domain
+    st.session_state.company = company
+    st.session_state.role = role
+
+# Reset logic
+if reset:
+    st.session_state.domain = []
+    st.session_state.company = []
+    st.session_state.role = []
+    st.rerun()
+
+# Apply filters to dataframe
+if st.session_state.domain:
+    df = df[df["Domain"].isin(st.session_state.domain)]
+
+if st.session_state.company:
+    df = df[df["Company_Tier"].isin(st.session_state.company)]
+
+if st.session_state.role:
+    df = df[df["Job_Role"].isin(st.session_state.role)]
 
 # -----------------------
 # KPI
