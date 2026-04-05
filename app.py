@@ -9,49 +9,9 @@ from utils.metrics import *
 st.set_page_config(page_title="PragyanAI Dashboard", layout="wide")
 
 # -----------------------
-# PREMIUM CSS
-# -----------------------
-st.markdown("""
-<style>
-
-/* Background */
-body {
-    background: #f6f8fb;
-}
-
-/* Sidebar Premium Blue Glass */
-[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #1e3c72, #2a5298);
-    backdrop-filter: blur(12px);
-    border-right: 1px solid rgba(255,255,255,0.2);
-}
-
-[data-testid="stSidebar"] * {
-    color: white !important;
-}
-
-/* KPI Cards */
-.metric-card {
-    background-color: #111;
-    padding: 15px;
-    border-radius: 12px;
-    text-align: center;
-    color: white;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-}
-
-/* Buttons */
-button {
-    border-radius: 10px !important;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-# -----------------------
 # TITLE
 # -----------------------
-st.markdown("<h1 style='text-align: center;'>🚀 PragyanAI Placement Intelligence Engine</h1>", unsafe_allow_html=True)
+st.title("🚀 PragyanAI Placement Intelligence Engine")
 
 # -----------------------
 # LOAD DATA
@@ -85,60 +45,55 @@ if company:
 # -----------------------
 # KPI
 # -----------------------
-st.markdown("## 📊 Overview")
+st.subheader("📊 Overview")
 
-c1, c2, c3, c4 = st.columns(4)
+col1, col2, col3, col4 = st.columns(4)
 
-c1.markdown(f"<div class='metric-card'><h3>Students</h3><h2>{len(df)}</h2></div>", unsafe_allow_html=True)
-c2.markdown(f"<div class='metric-card'><h3>Success Rate</h3><h2>{interview_success_rate(df):.2%}</h2></div>", unsafe_allow_html=True)
-c3.markdown(f"<div class='metric-card'><h3>Efficiency</h3><h2>{round_efficiency(df):.2%}</h2></div>", unsafe_allow_html=True)
-c4.markdown(f"<div class='metric-card'><h3>Placed</h3><h2>{df['Joined'].sum()}</h2></div>", unsafe_allow_html=True)
-
-# -----------------------
-# SAFE GROUPBY
-# -----------------------
-def safe_groupby(col):
-    if col in df.columns:
-        return df.groupby(col)["Joined"].mean()
-    return None
+col1.metric("Students", len(df))
+col2.metric("Success Rate", f"{interview_success_rate(df):.2%}")
+col3.metric("Efficiency", f"{round_efficiency(df):.2%}")
+col4.metric("Placed", df["Joined"].sum())
 
 # -----------------------
 # TABS
 # -----------------------
 tab1, tab2, tab3, tab4 = st.tabs([
-    "📉 Funnel",
-    "🔥 Failures",
-    "💼 Roles & Salary",
-    "🧠 Skills"
+    "Funnel",
+    "Failures",
+    "Roles",
+    "Skills"
 ])
 
 # -----------------------
 # FUNNEL
 # -----------------------
 with tab1:
-    if "Applied" in df.columns:
-        funnel = {
-            "Applied": df["Applied"].sum(),
-            "Shortlisted": df["Shortlisted"].sum(),
-            "Interview": df["Interview_Attended"].sum(),
-            "Offer": df["Offer_Received"].sum(),
-            "Joined": df["Joined"].sum()
-        }
-        st.bar_chart(funnel)
+    st.subheader("Placement Funnel")
+
+    funnel = {
+        "Applied": df["Applied"].sum(),
+        "Shortlisted": df["Shortlisted"].sum(),
+        "Interview": df["Interview_Attended"].sum(),
+        "Offer": df["Offer_Received"].sum(),
+        "Joined": df["Joined"].sum()
+    }
+    st.bar_chart(funnel)
 
 # -----------------------
 # FAILURES
 # -----------------------
 with tab2:
-    if "Failed_Stage" in df.columns:
-        st.bar_chart(df["Failed_Stage"].value_counts())
+    st.subheader("Failure Analysis")
+    st.bar_chart(df["Failed_Stage"].value_counts())
 
 # -----------------------
 # ROLES
 # -----------------------
 with tab3:
+    st.subheader("Role Distribution")
     st.bar_chart(df["Job_Role"].value_counts())
 
+    st.subheader("Salary Distribution")
     fig, ax = plt.subplots()
     ax.hist(df["Salary_LPA"], bins=30)
     st.pyplot(fig)
@@ -147,17 +102,28 @@ with tab3:
 # SKILLS
 # -----------------------
 with tab4:
+    st.subheader("Skill Impact")
     st.bar_chart(df.groupby("Skill_Programs_Completed")["Joined"].mean())
+
+    st.subheader("Internship Impact")
     st.bar_chart(df.groupby("Internship_Count")["Joined"].mean())
+
+    st.subheader("Project Impact")
     st.bar_chart(df.groupby("Projects_Count")["Joined"].mean())
+
+    st.subheader("Domain Gap")
     st.bar_chart(df.groupby("Domain")["Joined"].mean())
 
 # -----------------------
-# EXTRA COMPONENTS
+# CGPA ANALYSIS
 # -----------------------
+st.subheader("📈 CGPA vs Placement")
+st.line_chart(df.groupby("CGPA")["Joined"].mean())
 
-# 🎯 Placement Probability
-st.markdown("## 🎯 Placement Probability Calculator")
+# -----------------------
+# PLACEMENT PROBABILITY
+# -----------------------
+st.subheader("🎯 Placement Probability Calculator")
 
 cgpa = st.slider("CGPA", 0.0, 10.0, 7.0)
 skills = st.slider("Skill Programs", 0, 5, 2)
@@ -167,8 +133,10 @@ internships = st.slider("Internships", 0, 5, 1)
 prob = (cgpa + skills + projects + internships) / 25
 st.metric("Estimated Probability", f"{prob:.2%}")
 
-# 🔍 Student Search
-st.markdown("## 🔍 Student Search")
+# -----------------------
+# STUDENT SEARCH
+# -----------------------
+st.subheader("🔍 Student Search")
 
 sid = st.text_input("Enter Student ID")
 if sid:
@@ -176,33 +144,37 @@ if sid:
     if not result.empty:
         st.dataframe(result)
     else:
-        st.warning("Not found")
+        st.warning("Student not found")
 
-# 📥 Download
-st.markdown("## 📥 Download Data")
+# -----------------------
+# DOWNLOAD
+# -----------------------
+st.subheader("📥 Download Data")
 
 csv = df.to_csv(index=False).encode('utf-8')
-st.download_button("Download CSV", csv, "data.csv", "text/csv")
+st.download_button("Download CSV", csv, "placement_data.csv", "text/csv")
 
-# 🏆 Top Students
-st.markdown("## 🏆 Top Students")
+# -----------------------
+# TOP STUDENTS
+# -----------------------
+st.subheader("🏆 Top Students")
 
 top = df.sort_values(by="CGPA", ascending=False).head(10)
 top = top.drop(columns=["Failed_Stage"], errors="ignore")
 st.dataframe(top, hide_index=True)
 
 # -----------------------
-# INSIGHTS (LAST)
+# INSIGHTS
 # -----------------------
-st.markdown("## 📌 Key Insights")
+st.subheader("📌 Key Insights")
 
-st.success("Interview stage biggest bottleneck")
-st.warning("Coding + Tech rounds cause failure")
-st.info("Projects + internships boost success")
-st.error("GenAI roles hardest")
+st.write("• Interview stage biggest bottleneck")
+st.write("• Coding + Tech rounds cause failure")
+st.write("• Projects + internships boost success")
+st.write("• GenAI roles hardest")
 
 # -----------------------
 # FOOTER
 # -----------------------
 st.markdown("---")
-st.markdown("🚀 Built with Streamlit | PragyanAI Engine")
+st.write("Built with Streamlit")
