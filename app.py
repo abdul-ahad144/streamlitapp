@@ -4,10 +4,13 @@ import matplotlib.pyplot as plt
 from utils.metrics import *
 
 # -----------------------
-# CONFIG
+# PAGE CONFIG
 # -----------------------
 st.set_page_config(page_title="PragyanAI Dashboard", layout="wide")
 
+# -----------------------
+# TITLE
+# -----------------------
 st.title("🚀 PragyanAI Placement Intelligence Engine")
 
 # -----------------------
@@ -28,48 +31,64 @@ df.columns = df.columns.str.strip()
 # -----------------------
 # SESSION STATE INIT
 # -----------------------
-if "filtered_df" not in st.session_state:
-    st.session_state.filtered_df = df.copy()
+if "domain" not in st.session_state:
+    st.session_state.domain = []
+if "company" not in st.session_state:
+    st.session_state.company = []
+if "role" not in st.session_state:
+    st.session_state.role = []
 
 # -----------------------
 # SIDEBAR FILTERS
 # -----------------------
 st.sidebar.header("🔍 Filters")
 
-domain = st.sidebar.multiselect("Domain", df["Domain"].unique())
-company = st.sidebar.multiselect("Company Tier", df["Company_Tier"].unique())
-role = st.sidebar.multiselect("Job Role", df["Job_Role"].unique())
+domain = st.sidebar.multiselect(
+    "Domain",
+    df["Domain"].unique(),
+    default=st.session_state.domain
+)
 
+company = st.sidebar.multiselect(
+    "Company Tier",
+    df["Company_Tier"].unique(),
+    default=st.session_state.company
+)
+
+role = st.sidebar.multiselect(
+    "Job Role",
+    df["Job_Role"].unique(),
+    default=st.session_state.role
+)
+
+# Buttons
 apply = st.sidebar.button("Apply Filters")
 reset = st.sidebar.button("Reset Filters")
 
-# -----------------------
-# APPLY FILTER LOGIC
-# -----------------------
+# APPLY
 if apply:
-    temp_df = df.copy()
+    st.session_state.domain = domain
+    st.session_state.company = company
+    st.session_state.role = role
 
-    if domain:
-        temp_df = temp_df[temp_df["Domain"].isin(domain)]
-
-    if company:
-        temp_df = temp_df[temp_df["Company_Tier"].isin(company)]
-
-    if role:
-        temp_df = temp_df[temp_df["Job_Role"].isin(role)]
-
-    st.session_state.filtered_df = temp_df
-
-# -----------------------
-# RESET FILTER LOGIC
-# -----------------------
+# RESET
 if reset:
-    st.session_state.filtered_df = df.copy()
+    st.session_state.domain = []
+    st.session_state.company = []
+    st.session_state.role = []
+    st.rerun()
 
 # -----------------------
-# USE FILTERED DATA
+# APPLY FILTERS TO DATA
 # -----------------------
-df = st.session_state.filtered_df
+if st.session_state.domain:
+    df = df[df["Domain"].isin(st.session_state.domain)]
+
+if st.session_state.company:
+    df = df[df["Company_Tier"].isin(st.session_state.company)]
+
+if st.session_state.role:
+    df = df[df["Job_Role"].isin(st.session_state.role)]
 
 # -----------------------
 # KPI
@@ -84,7 +103,7 @@ col3.metric("Efficiency", f"{round_efficiency(df):.2%}")
 col4.metric("Placed", df["Joined"].sum())
 
 # -----------------------
-# SAFE GROUP
+# SAFE GROUP FUNCTION
 # -----------------------
 def safe_group(col):
     if col in df.columns:
@@ -100,6 +119,8 @@ tab1, tab2, tab3, tab4 = st.tabs(["Funnel", "Failures", "Roles", "Skills"])
 # FUNNEL
 # -----------------------
 with tab1:
+    st.subheader("Placement Funnel")
+
     funnel = {
         "Applied": df["Applied"].sum(),
         "Shortlisted": df["Shortlisted"].sum(),
@@ -113,14 +134,17 @@ with tab1:
 # FAILURES
 # -----------------------
 with tab2:
+    st.subheader("Failure Analysis")
     st.bar_chart(df["Failed_Stage"].value_counts())
 
 # -----------------------
 # ROLES
 # -----------------------
 with tab3:
+    st.subheader("Role Distribution")
     st.bar_chart(df["Job_Role"].value_counts())
 
+    st.subheader("Salary Distribution")
     fig, ax = plt.subplots()
     ax.hist(df["Salary_LPA"], bins=30)
     st.pyplot(fig)
@@ -129,15 +153,30 @@ with tab3:
 # SKILLS
 # -----------------------
 with tab4:
-    st.bar_chart(safe_group("Skill_Programs"))
-    st.bar_chart(safe_group("Internships"))
-    st.bar_chart(safe_group("Projects"))
-    st.bar_chart(safe_group("Domain"))
+    st.subheader("Skill Impact")
+    skill = safe_group("Skill_Programs")
+    if skill is not None:
+        st.bar_chart(skill)
+
+    st.subheader("Internship Impact")
+    intern = safe_group("Internships")
+    if intern is not None:
+        st.bar_chart(intern)
+
+    st.subheader("Project Impact")
+    proj = safe_group("Projects")
+    if proj is not None:
+        st.bar_chart(proj)
+
+    st.subheader("Domain Gap")
+    domain_gap = safe_group("Domain")
+    if domain_gap is not None:
+        st.bar_chart(domain_gap)
 
 # -----------------------
-# EXTRA
+# PLACEMENT PROBABILITY
 # -----------------------
-st.subheader("🎯 Placement Probability")
+st.subheader("🎯 Placement Probability Calculator")
 
 cgpa = st.slider("CGPA", 0.0, 10.0, 7.0)
 skills = st.slider("Skill Programs", 0, 5, 2)
@@ -145,24 +184,50 @@ projects = st.slider("Projects", 0, 10, 3)
 internships = st.slider("Internships", 0, 5, 1)
 
 prob = (cgpa + skills + projects + internships) / 25
-st.metric("Probability", f"{prob:.2%}")
+st.metric("Estimated Probability", f"{prob:.2%}")
+
+# -----------------------
+# STUDENT SEARCH
+# -----------------------
+st.subheader("🔍 Student Search")
+
+sid = st.text_input("Enter Student ID")
+if sid:
+    result = df[df["Student_ID"].astype(str) == sid]
+    if not result.empty:
+        st.dataframe(result, hide_index=True)
+    else:
+        st.warning("Student not found")
 
 # -----------------------
 # DOWNLOAD
 # -----------------------
+st.subheader("📥 Download Data")
+
 csv = df.to_csv(index=False).encode('utf-8')
-st.download_button("Download CSV", csv)
+st.download_button("Download CSV", csv, "placement_data.csv", "text/csv")
 
 # -----------------------
 # TOP STUDENTS
 # -----------------------
+st.subheader("🏆 Top Students")
+
 top = df.sort_values(by="CGPA", ascending=False).head(10)
+top = top.drop(columns=["Failed_Stage"], errors="ignore")
 st.dataframe(top, hide_index=True)
 
 # -----------------------
 # INSIGHTS
 # -----------------------
-st.subheader("📌 Insights")
-st.write("Interview stage biggest bottleneck")
-st.write("Coding + Tech failures high")
-st.write("Projects + internships boost success")
+st.subheader("📌 Key Insights")
+
+st.write("• Interview stage biggest bottleneck")
+st.write("• Coding + Tech rounds cause failure")
+st.write("• Projects + internships boost success")
+st.write("• GenAI roles hardest")
+
+# -----------------------
+# FOOTER
+# -----------------------
+st.markdown("---")
+st.write("🚀 Built with Streamlit")
