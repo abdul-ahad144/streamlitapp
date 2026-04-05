@@ -33,8 +33,15 @@ df.columns = df.columns.str.strip()
 # -----------------------
 st.sidebar.header("🔍 Filters")
 
-domain = st.sidebar.multiselect("Domain", df["Domain"].unique() if "Domain" in df.columns else [])
-company = st.sidebar.multiselect("Company Tier", df["Company_Tier"].unique() if "Company_Tier" in df.columns else [])
+domain = st.sidebar.multiselect(
+    "Domain",
+    df["Domain"].unique() if "Domain" in df.columns else []
+)
+
+company = st.sidebar.multiselect(
+    "Company Tier",
+    df["Company_Tier"].unique() if "Company_Tier" in df.columns else []
+)
 
 if domain:
     df = df[df["Domain"].isin(domain)]
@@ -65,13 +72,19 @@ def safe_group(col):
 # -----------------------
 # TABS
 # -----------------------
-tab1, tab2, tab3, tab4 = st.tabs(["Funnel", "Failures", "Roles", "Skills"])
+tab1, tab2, tab3, tab4 = st.tabs([
+    "Funnel",
+    "Failures",
+    "Roles",
+    "Skills"
+])
 
 # -----------------------
 # FUNNEL
 # -----------------------
 with tab1:
     st.subheader("Placement Funnel")
+
     if "Applied" in df.columns:
         funnel = {
             "Applied": df["Applied"].sum(),
@@ -87,6 +100,7 @@ with tab1:
 # -----------------------
 with tab2:
     st.subheader("Failure Analysis")
+
     if "Failed_Stage" in df.columns:
         st.bar_chart(df["Failed_Stage"].value_counts())
 
@@ -95,6 +109,7 @@ with tab2:
 # -----------------------
 with tab3:
     st.subheader("Role Distribution")
+
     if "Job_Role" in df.columns:
         st.bar_chart(df["Job_Role"].value_counts())
 
@@ -105,7 +120,7 @@ with tab3:
         st.pyplot(fig)
 
 # -----------------------
-# SKILLS (FIXED)
+# SKILLS
 # -----------------------
 with tab4:
     st.subheader("Skill Impact")
@@ -127,13 +142,6 @@ with tab4:
     domain_gap = safe_group("Domain")
     if domain_gap is not None:
         st.bar_chart(domain_gap)
-
-# -----------------------
-# CGPA ANALYSIS
-# -----------------------
-if "CGPA" in df.columns:
-    st.subheader("📈 CGPA vs Placement")
-    st.line_chart(df.groupby("CGPA")["Joined"].mean())
 
 # -----------------------
 # PLACEMENT PROBABILITY
@@ -194,4 +202,4 @@ st.write("• GenAI roles hardest")
 # FOOTER
 # -----------------------
 st.markdown("---")
-st.write("Built with Streamlit")
+st.write("🚀 Built with Streamlit")
