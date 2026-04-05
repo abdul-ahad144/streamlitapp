@@ -46,7 +46,7 @@ df = load_data()
 df.columns = df.columns.str.strip()
 
 # -----------------------
-# SIDEBAR FILTERS (SIMPLE & WORKING)
+# SIDEBAR FILTERS
 # -----------------------
 st.sidebar.header("🔍 Filters")
 
@@ -65,13 +65,14 @@ role = st.sidebar.multiselect(
     df["Job_Role"].unique() if "Job_Role" in df.columns else []
 )
 
-apply = st.sidebar.button("Apply Filters")
-reset = st.sidebar.button("Reset Filters")
+# -----------------------
+# BUTTONS
+# -----------------------
+apply_filter = st.sidebar.button("Apply Filters")
+reset_filter = st.sidebar.button("Reset Filters")
 
-# -----------------------
-# APPLY FILTER
-# -----------------------
-if apply:
+# APPLY FILTERS
+if apply_filter:
     if domain:
         df = df[df["Domain"].isin(domain)]
 
@@ -81,11 +82,10 @@ if apply:
     if role:
         df = df[df["Job_Role"].isin(role)]
 
-# -----------------------
 # RESET FILTER
-# -----------------------
-if reset:
-    st.experimental_rerun()
+if reset_filter:
+    st.rerun()
+
 # -----------------------
 # KPI CARDS
 # -----------------------
