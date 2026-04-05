@@ -33,8 +33,8 @@ df.columns = df.columns.str.strip()
 # -----------------------
 st.sidebar.header("🔍 Filters")
 
-domain = st.sidebar.multiselect("Domain", df["Domain"].unique())
-company = st.sidebar.multiselect("Company Tier", df["Company_Tier"].unique())
+domain = st.sidebar.multiselect("Domain", df["Domain"].unique() if "Domain" in df.columns else [])
+company = st.sidebar.multiselect("Company Tier", df["Company_Tier"].unique() if "Company_Tier" in df.columns else [])
 
 if domain:
     df = df[df["Domain"].isin(domain)]
@@ -52,73 +52,88 @@ col1, col2, col3, col4 = st.columns(4)
 col1.metric("Students", len(df))
 col2.metric("Success Rate", f"{interview_success_rate(df):.2%}")
 col3.metric("Efficiency", f"{round_efficiency(df):.2%}")
-col4.metric("Placed", df["Joined"].sum())
+col4.metric("Placed", df["Joined"].sum() if "Joined" in df.columns else 0)
+
+# -----------------------
+# SAFE GROUP FUNCTION
+# -----------------------
+def safe_group(col):
+    if col in df.columns:
+        return df.groupby(col)["Joined"].mean()
+    return None
 
 # -----------------------
 # TABS
 # -----------------------
-tab1, tab2, tab3, tab4 = st.tabs([
-    "Funnel",
-    "Failures",
-    "Roles",
-    "Skills"
-])
+tab1, tab2, tab3, tab4 = st.tabs(["Funnel", "Failures", "Roles", "Skills"])
 
 # -----------------------
 # FUNNEL
 # -----------------------
 with tab1:
     st.subheader("Placement Funnel")
-
-    funnel = {
-        "Applied": df["Applied"].sum(),
-        "Shortlisted": df["Shortlisted"].sum(),
-        "Interview": df["Interview_Attended"].sum(),
-        "Offer": df["Offer_Received"].sum(),
-        "Joined": df["Joined"].sum()
-    }
-    st.bar_chart(funnel)
+    if "Applied" in df.columns:
+        funnel = {
+            "Applied": df["Applied"].sum(),
+            "Shortlisted": df["Shortlisted"].sum(),
+            "Interview": df["Interview_Attended"].sum(),
+            "Offer": df["Offer_Received"].sum(),
+            "Joined": df["Joined"].sum()
+        }
+        st.bar_chart(funnel)
 
 # -----------------------
 # FAILURES
 # -----------------------
 with tab2:
     st.subheader("Failure Analysis")
-    st.bar_chart(df["Failed_Stage"].value_counts())
+    if "Failed_Stage" in df.columns:
+        st.bar_chart(df["Failed_Stage"].value_counts())
 
 # -----------------------
 # ROLES
 # -----------------------
 with tab3:
     st.subheader("Role Distribution")
-    st.bar_chart(df["Job_Role"].value_counts())
+    if "Job_Role" in df.columns:
+        st.bar_chart(df["Job_Role"].value_counts())
 
-    st.subheader("Salary Distribution")
-    fig, ax = plt.subplots()
-    ax.hist(df["Salary_LPA"], bins=30)
-    st.pyplot(fig)
+    if "Salary_LPA" in df.columns:
+        st.subheader("Salary Distribution")
+        fig, ax = plt.subplots()
+        ax.hist(df["Salary_LPA"], bins=30)
+        st.pyplot(fig)
 
 # -----------------------
-# SKILLS
+# SKILLS (FIXED)
 # -----------------------
 with tab4:
     st.subheader("Skill Impact")
-    st.bar_chart(df.groupby("Skill_Programs_Completed")["Joined"].mean())
+    skill = safe_group("Skill_Programs")
+    if skill is not None:
+        st.bar_chart(skill)
 
     st.subheader("Internship Impact")
-    st.bar_chart(df.groupby("Internship_Count")["Joined"].mean())
+    intern = safe_group("Internships")
+    if intern is not None:
+        st.bar_chart(intern)
 
     st.subheader("Project Impact")
-    st.bar_chart(df.groupby("Projects_Count")["Joined"].mean())
+    proj = safe_group("Projects")
+    if proj is not None:
+        st.bar_chart(proj)
 
     st.subheader("Domain Gap")
-    st.bar_chart(df.groupby("Domain")["Joined"].mean())
+    domain_gap = safe_group("Domain")
+    if domain_gap is not None:
+        st.bar_chart(domain_gap)
 
 # -----------------------
 # CGPA ANALYSIS
 # -----------------------
-st.subheader("📈 CGPA vs Placement")
-st.line_chart(df.groupby("CGPA")["Joined"].mean())
+if "CGPA" in df.columns:
+    st.subheader("📈 CGPA vs Placement")
+    st.line_chart(df.groupby("CGPA")["Joined"].mean())
 
 # -----------------------
 # PLACEMENT PROBABILITY
@@ -138,13 +153,14 @@ st.metric("Estimated Probability", f"{prob:.2%}")
 # -----------------------
 st.subheader("🔍 Student Search")
 
-sid = st.text_input("Enter Student ID")
-if sid:
-    result = df[df["Student_ID"].astype(str) == sid]
-    if not result.empty:
-        st.dataframe(result)
-    else:
-        st.warning("Student not found")
+if "Student_ID" in df.columns:
+    sid = st.text_input("Enter Student ID")
+    if sid:
+        result = df[df["Student_ID"].astype(str) == sid]
+        if not result.empty:
+            st.dataframe(result, hide_index=True)
+        else:
+            st.warning("Student not found")
 
 # -----------------------
 # DOWNLOAD
@@ -159,9 +175,10 @@ st.download_button("Download CSV", csv, "placement_data.csv", "text/csv")
 # -----------------------
 st.subheader("🏆 Top Students")
 
-top = df.sort_values(by="CGPA", ascending=False).head(10)
-top = top.drop(columns=["Failed_Stage"], errors="ignore")
-st.dataframe(top, hide_index=True)
+if "CGPA" in df.columns:
+    top = df.sort_values(by="CGPA", ascending=False).head(10)
+    top = top.drop(columns=["Failed_Stage"], errors="ignore")
+    st.dataframe(top, hide_index=True)
 
 # -----------------------
 # INSIGHTS
