@@ -9,9 +9,24 @@ from utils.metrics import *
 st.set_page_config(page_title="PragyanAI Dashboard", layout="wide")
 
 # -----------------------
+# CUSTOM CSS
+# -----------------------
+st.markdown("""
+<style>
+.metric-card {
+    background-color: #111;
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    color: white;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# -----------------------
 # TITLE
 # -----------------------
-st.title("🚀 PragyanAI Placement Intelligence Engine")
+st.markdown("<h1 style='text-align: center;'>🚀 PragyanAI Placement Intelligence Engine</h1>", unsafe_allow_html=True)
 
 # -----------------------
 # LOAD DATA
@@ -19,24 +34,16 @@ st.title("🚀 PragyanAI Placement Intelligence Engine")
 @st.cache_data
 def load_data():
     url = "https://raw.githubusercontent.com/pragyanaischool/VTU_Internship_DataSets/refs/heads/main/student_data_placement_interview_funnel_analysis_project_10.csv"
+    
     try:
         df = pd.read_csv(url)
     except:
         df = pd.read_csv(url, encoding='latin1', on_bad_lines='skip')
+    
     return df
 
 df = load_data()
 df.columns = df.columns.str.strip()
-
-# -----------------------
-# SESSION STATE INIT
-# -----------------------
-if "domain" not in st.session_state:
-    st.session_state.domain = []
-if "company" not in st.session_state:
-    st.session_state.company = []
-if "role" not in st.session_state:
-    st.session_state.role = []
 
 # -----------------------
 # SIDEBAR FILTERS
@@ -45,67 +52,57 @@ st.sidebar.header("🔍 Filters")
 
 domain = st.sidebar.multiselect(
     "Domain",
-    df["Domain"].unique(),
-    default=st.session_state.domain
+    df["Domain"].unique() if "Domain" in df.columns else []
 )
 
 company = st.sidebar.multiselect(
     "Company Tier",
-    df["Company_Tier"].unique(),
-    default=st.session_state.company
+    df["Company_Tier"].unique() if "Company_Tier" in df.columns else []
 )
 
 role = st.sidebar.multiselect(
     "Job Role",
-    df["Job_Role"].unique(),
-    default=st.session_state.role
+    df["Job_Role"].unique() if "Job_Role" in df.columns else []
 )
 
-# Buttons
-apply = st.sidebar.button("Apply Filters")
-reset = st.sidebar.button("Reset Filters")
+# ✅ BUTTONS
+apply_filter = st.sidebar.button("Apply Filters")
+reset_filter = st.sidebar.button("Reset Filters")
 
-# APPLY
-if apply:
-    st.session_state.domain = domain
-    st.session_state.company = company
-    st.session_state.role = role
+# APPLY FILTER ONLY WHEN BUTTON CLICKED
+if apply_filter:
+    if domain:
+        df = df[df["Domain"].isin(domain)]
+
+    if company:
+        df = df[df["Company_Tier"].isin(company)]
+
+    if role:
+        df = df[df["Job_Role"].isin(role)]
 
 # RESET
-if reset:
-    st.session_state.domain = []
-    st.session_state.company = []
-    st.session_state.role = []
-    st.rerun()
+if reset_filter:
+    st.experimental_rerun()
 
 # -----------------------
-# APPLY FILTERS TO DATA
+# KPI CARDS
 # -----------------------
-if st.session_state.domain:
-    df = df[df["Domain"].isin(st.session_state.domain)]
-
-if st.session_state.company:
-    df = df[df["Company_Tier"].isin(st.session_state.company)]
-
-if st.session_state.role:
-    df = df[df["Job_Role"].isin(st.session_state.role)]
-
-# -----------------------
-# KPI
-# -----------------------
-st.subheader("📊 Overview")
+st.markdown("## 📊 Overview")
 
 col1, col2, col3, col4 = st.columns(4)
 
-col1.metric("Students", len(df))
-col2.metric("Success Rate", f"{interview_success_rate(df):.2%}")
-col3.metric("Efficiency", f"{round_efficiency(df):.2%}")
-col4.metric("Placed", df["Joined"].sum())
+col1.markdown(f"<div class='metric-card'><h3>Students</h3><h2>{len(df)}</h2></div>", unsafe_allow_html=True)
+
+col2.markdown(f"<div class='metric-card'><h3>Success Rate</h3><h2>{interview_success_rate(df):.2%}</h2></div>", unsafe_allow_html=True)
+
+col3.markdown(f"<div class='metric-card'><h3>Efficiency</h3><h2>{round_efficiency(df):.2%}</h2></div>", unsafe_allow_html=True)
+
+col4.markdown(f"<div class='metric-card'><h3>Placed</h3><h2>{df['Joined'].sum() if 'Joined' in df.columns else 0}</h2></div>", unsafe_allow_html=True)
 
 # -----------------------
-# SAFE GROUP FUNCTION
+# SAFE GROUPBY
 # -----------------------
-def safe_group(col):
+def safe_groupby(col):
     if col in df.columns:
         return df.groupby(col)["Joined"].mean()
     return None
@@ -113,7 +110,12 @@ def safe_group(col):
 # -----------------------
 # TABS
 # -----------------------
-tab1, tab2, tab3, tab4 = st.tabs(["Funnel", "Failures", "Roles", "Skills"])
+tab1, tab2, tab3, tab4 = st.tabs([
+    "📉 Funnel",
+    "🔥 Failures",
+    "💼 Roles & Salary",
+    "🧠 Skills & Insights"
+])
 
 # -----------------------
 # FUNNEL
@@ -121,62 +123,75 @@ tab1, tab2, tab3, tab4 = st.tabs(["Funnel", "Failures", "Roles", "Skills"])
 with tab1:
     st.subheader("Placement Funnel")
 
-    funnel = {
-        "Applied": df["Applied"].sum(),
-        "Shortlisted": df["Shortlisted"].sum(),
-        "Interview": df["Interview_Attended"].sum(),
-        "Offer": df["Offer_Received"].sum(),
-        "Joined": df["Joined"].sum()
-    }
-    st.bar_chart(funnel)
+    if "Applied" in df.columns:
+        funnel = {
+            "Applied": df["Applied"].sum(),
+            "Shortlisted": df["Shortlisted"].sum(),
+            "Interview": df["Interview_Attended"].sum(),
+            "Offer": df["Offer_Received"].sum(),
+            "Joined": df["Joined"].sum()
+        }
+        st.bar_chart(funnel)
 
 # -----------------------
-# FAILURES
+# FAILURE
 # -----------------------
 with tab2:
     st.subheader("Failure Analysis")
-    st.bar_chart(df["Failed_Stage"].value_counts())
+
+    if "Failed_Stage" in df.columns:
+        st.bar_chart(df["Failed_Stage"].value_counts())
 
 # -----------------------
-# ROLES
+# ROLE + SALARY
 # -----------------------
 with tab3:
-    st.subheader("Role Distribution")
-    st.bar_chart(df["Job_Role"].value_counts())
+    col1, col2 = st.columns(2)
 
-    st.subheader("Salary Distribution")
-    fig, ax = plt.subplots()
-    ax.hist(df["Salary_LPA"], bins=30)
-    st.pyplot(fig)
+    with col1:
+        if "Job_Role" in df.columns:
+            st.subheader("Role Distribution")
+            st.bar_chart(df["Job_Role"].value_counts())
+
+    with col2:
+        if "Salary_LPA" in df.columns:
+            st.subheader("Salary Distribution")
+            fig, ax = plt.subplots()
+            ax.hist(df["Salary_LPA"], bins=30)
+            st.pyplot(fig)
 
 # -----------------------
 # SKILLS
 # -----------------------
 with tab4:
-    st.subheader("Skill Impact")
-    skill = safe_group("Skill_Programs")
-    if skill is not None:
-        st.bar_chart(skill)
+    col1, col2 = st.columns(2)
 
-    st.subheader("Internship Impact")
-    intern = safe_group("Internships")
-    if intern is not None:
-        st.bar_chart(intern)
+    with col1:
+        skill = safe_groupby("Skill_Programs_Completed")
+        if skill is not None:
+            st.subheader("Skill Impact")
+            st.bar_chart(skill)
 
-    st.subheader("Project Impact")
-    proj = safe_group("Projects")
-    if proj is not None:
-        st.bar_chart(proj)
+        intern = safe_groupby("Internship_Count")
+        if intern is not None:
+            st.subheader("Internship Impact")
+            st.bar_chart(intern)
 
-    st.subheader("Domain Gap")
-    domain_gap = safe_group("Domain")
-    if domain_gap is not None:
-        st.bar_chart(domain_gap)
+    with col2:
+        proj = safe_groupby("Projects_Count")
+        if proj is not None:
+            st.subheader("Project Impact")
+            st.bar_chart(proj)
+
+        domain_gap = safe_groupby("Domain")
+        if domain_gap is not None:
+            st.subheader("Domain Gap")
+            st.bar_chart(domain_gap)
 
 # -----------------------
-# PLACEMENT PROBABILITY
+# EXTRA COMPONENTS
 # -----------------------
-st.subheader("🎯 Placement Probability Calculator")
+st.markdown("## 🎯 Placement Probability Calculator")
 
 cgpa = st.slider("CGPA", 0.0, 10.0, 7.0)
 skills = st.slider("Skill Programs", 0, 5, 2)
@@ -189,45 +204,45 @@ st.metric("Estimated Probability", f"{prob:.2%}")
 # -----------------------
 # STUDENT SEARCH
 # -----------------------
-st.subheader("🔍 Student Search")
+st.markdown("## 🔍 Student Search")
 
-sid = st.text_input("Enter Student ID")
-if sid:
-    result = df[df["Student_ID"].astype(str) == sid]
-    if not result.empty:
-        st.dataframe(result, hide_index=True)
-    else:
-        st.warning("Student not found")
+if "Student_ID" in df.columns:
+    sid = st.text_input("Enter Student ID")
+    if sid:
+        result = df[df["Student_ID"].astype(str) == sid]
+        if not result.empty:
+            st.dataframe(result)
+        else:
+            st.warning("Not found")
 
 # -----------------------
 # DOWNLOAD
 # -----------------------
-st.subheader("📥 Download Data")
+st.markdown("## 📥 Download Data")
 
 csv = df.to_csv(index=False).encode('utf-8')
-st.download_button("Download CSV", csv, "placement_data.csv", "text/csv")
+st.download_button("Download CSV", csv, "data.csv", "text/csv")
 
 # -----------------------
 # TOP STUDENTS
 # -----------------------
-st.subheader("🏆 Top Students")
+st.markdown("## 🏆 Top Students")
 
-top = df.sort_values(by="CGPA", ascending=False).head(10)
-top = top.drop(columns=["Failed_Stage"], errors="ignore")
-st.dataframe(top, hide_index=True)
+if "CGPA" in df.columns:
+    st.dataframe(df.sort_values(by="CGPA", ascending=False).head(10))
 
 # -----------------------
 # INSIGHTS
 # -----------------------
-st.subheader("📌 Key Insights")
+st.markdown("## 📌 Key Insights")
 
-st.write("• Interview stage biggest bottleneck")
-st.write("• Coding + Tech rounds cause failure")
-st.write("• Projects + internships boost success")
-st.write("• GenAI roles hardest")
+st.success("Interview stage biggest bottleneck")
+st.warning("Coding + Tech rounds cause failure")
+st.info("Projects + internships boost success")
+st.error("GenAI roles hardest")
 
 # -----------------------
 # FOOTER
 # -----------------------
 st.markdown("---")
-st.write("🚀 Built with Streamlit")
+st.markdown("🚀 Built with Streamlit | PragyanAI Engine")
