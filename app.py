@@ -147,6 +147,20 @@ with tab4:
 
     if "Projects" in df.columns:
         st.bar_chart(df.groupby("Projects")["Joined"].mean())
+# -----------------------
+# EXTRA COMPONENTS
+# -----------------------
+
+# 🎯 Placement Probability
+st.markdown("## 🎯 Placement Probability Calculator")
+
+cgpa = st.slider("CGPA", 0.0, 10.0, 7.0)
+skills = st.slider("Skill Programs", 0, 5, 2)
+projects = st.slider("Projects", 0, 10, 3)
+internships = st.slider("Internships", 0, 5, 1)
+
+prob = (cgpa + skills + projects + internships) / 25
+st.metric("Estimated Probability", f"{prob:.2%}")
 
 # -----------------------
 # STUDENT SEARCH
