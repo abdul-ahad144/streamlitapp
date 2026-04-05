@@ -13,21 +13,83 @@ st.set_page_config(page_title="PragyanAI Dashboard", layout="wide")
 # -----------------------
 st.markdown("""
 <style>
-.metric-card {
-    background-color: #111;
-    padding: 15px;
-    border-radius: 12px;
-    text-align: center;
-    color: white;
+
+/* BACKGROUND */
+body {
+    background: #f6f8fb;
 }
+
+/* TITLE */
+.title {
+    font-size: 42px;
+    font-weight: 700;
+    text-align: center;
+    background: linear-gradient(90deg, #3a7bd5, #00d2ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* PREMIUM TAG */
+.premium-tag {
+    text-align: center;
+    font-size: 14px;
+    color: #fff;
+    background: linear-gradient(90deg, #ff7e5f, #feb47b);
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+}
+
+/* KPI CARD */
+.metric-card {
+    background: white;
+    padding: 20px;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    transition: 0.3s;
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+}
+
+/* SECTION */
+.section {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
+
+/* SIDEBAR */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #ffffff, #f3f6fb);
+    border-right: 1px solid #eee;
+}
+
+/* BUTTON */
+button {
+    border-radius: 10px !important;
+    background: linear-gradient(90deg, #3a7bd5, #00d2ff);
+    color: white !important;
+}
+
+/* TABLE */
+[data-testid="stDataFrame"] {
+    border-radius: 12px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------
-# TITLE
+# PREMIUM TAG + TITLE
 # -----------------------
-st.markdown("<h1 style='text-align: center;'>🚀 PragyanAI Placement Intelligence Engine</h1>", unsafe_allow_html=True)
-
+st.markdown("<div style='text-align:center;'><span class='premium-tag'>💎 ULTRA PREMIUM DASHBOARD</span></div>", unsafe_allow_html=True)
+st.markdown("<div class='title'>🚀 PragyanAI Placement Intelligence Engine</div>", unsafe_allow_html=True)
 # -----------------------
 # LOAD DATA
 # -----------------------
