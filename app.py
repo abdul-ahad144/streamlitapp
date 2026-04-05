@@ -13,6 +13,28 @@ st.set_page_config(page_title="PragyanAI Dashboard", layout="wide")
 # -----------------------
 st.markdown("""
 <style>
+/* TAB TEXT */
+button[data-baseweb="tab"] {
+    color: black !important;
+    font-weight: 600;
+}
+
+/* ACTIVE TAB TEXT */
+button[data-baseweb="tab"][aria-selected="true"] {
+    color: black !important;
+}
+
+/* REMOVE DEFAULT U-SHAPE */
+[data-baseweb="tab"]::after {
+    display: none !important;
+}
+
+/* STRAIGHT ORANGE LINE ONLY */
+[data-baseweb="tab-highlight"] {
+    height: 3px !important;
+    background: orange !important;
+    border-radius: 0px !important;  /* 🔥 no curve */
+}
 
 /* BACKGROUND */
 body {
